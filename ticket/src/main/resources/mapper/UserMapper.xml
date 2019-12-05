@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tweedia.ticket.mapper.UserMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.tweedia.ticket.domain.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="name" property="name"/>
+        <result column="password" property="password"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <!--        <result column="isDelete" property="isDelete"/>-->
+        <result column="enable" property="enable"/>
+        <!--角色集合-->
+        <collection property="roles" ofType="com.tweedia.ticket.domain.Role">
+            <id property="id" column="rid" jdbcType="BIGINT" javaType="java.lang.Long"/>
+            <result property="name" column="rname"/>
+        </collection>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, username, name, password, phone, email, enable
+    </sql>
+    <resultMap id="user_role_result" type="com.tweedia.ticket.domain.User">
+        <id property="id" column="uid" jdbcType="BIGINT" javaType="java.lang.Long"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="enable" column="enable"/>
+        <!--角色集合-->
+        <collection property="roles" ofType="com.tweedia.ticket.domain.Role">
+            <id property="id" column="rid" jdbcType="BIGINT" javaType="java.lang.Long"/>
+            <result property="name" column="name"/>
+        </collection>
+    </resultMap>
+    <select id="findUserAndRoleByUsername" resultMap="BaseResultMap" parameterType="string">
+        SELECT user.*, role.id rid, role.name rname FROM user
+               JOIN user_role ON uid = user.id
+               JOIN role ON role.id = rid
+        WHERE user.username = #{username};
+     </select>
+
+    <select id="show" resultMap="BaseResultMap">
+        select * from (select row.*,rownum r from (
+        SELECT @rownum:=@rownum+1 AS rownum,user.*,role.name rname,role.id rid
+        FROM (SELECT @rownum:=0) r,user
+        JOIN user_role ON uid = user.id
+        JOIN role ON role.id = rid
+        WHERE (role.name=#{name}
+        <if test="admin!=null and admin !=''">
+            or role.name=#{admin}
+        </if>
+        )
+        <if test="id!=null and id!=''">
+            and user.id like "%"#{id}"%"
+        </if>
+        ) row where rownum &lt;= (#{pageSize}+#{start}) ) tkt WHERE r &gt; #{start}
+    </select>
+
+    <select id="total" resultType="Long">
+        SELECT count(*)
+        FROM user
+        JOIN user_role ON uid = user.id
+        JOIN role ON role.id = rid
+        WHERE (role.name=#{name}
+        <if test="admin!=null and admin !=''">
+            or role.name=#{admin}
+        </if>
+        )
+        <if test="id!=null and id!=''">
+            and user.id like "%"#{id}"%"
+        </if>
+    </select>
+
+    <select id="validateInput" resultType="Integer">
+    SELECT user.*, role.id rid, role.name rname FROM user
+    JOIN user_role ON uid = user.id
+    JOIN role ON role.id = rid
+    where role.name !='user' and user.id=#{operatorId}
+    </select>
+
+    <select id="allUserId" resultMap="BaseResultMap">
+        SELECT user.id FROM user
+               JOIN user_role ON uid = user.id
+               JOIN role ON role.id = rid
+        where role.name !='user'
+    </select>
+</mapper>

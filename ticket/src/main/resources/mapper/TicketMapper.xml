@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tweedia.ticket.mapper.TicketMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.tweedia.ticket.domain.Ticket">
+        <id column="id" property="id"/>
+        <result column="rownum" property="rowNum"/>
+        <result column="tkId" property="tkId"/>
+        <result column="userId" property="userId"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="title" property="title"/>
+        <result column="reply" property="reply"/>
+        <result column="server" property="server"/>
+        <result column="questionType" property="questionType"/>
+        <result column="createDate" property="createDate"/>
+        <result column="operatorId" property="operatorId"/>
+        <!--        <result column="isDelete" property="isDelete"/>-->
+        <result column="status" property="status"/>
+        <result column="description" property="description"/>
+        <result column="evaluation" property="evaluation"/>
+        <result column="opinion" property="opinion"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, userId, phone, email, title, reply, server, questionType, createDate, operatorId, status, description
+    </sql>
+
+    <select id="findTicket" resultType="com.tweedia.ticket.domain.Ticket">
+        select * from (select row.*,rownum r from (
+        SELECT @rownum:=@rownum+1 AS rownum, ticket.*,a.username customerName,b.name operatorName
+        FROM (SELECT @rownum:=0) r,ticket
+        LEFT JOIN user a ON ticket.userId = a.id
+        LEFT JOIN user b ON ticket.operatorId = b.id
+        WHERE 1=1
+        <if test="id!=null and id!=''">
+            and ticket.tkId like "%"#{id}"%"
+        </if>
+        <if test="username!=null and username!=''">
+            and a.username like "%"#{username}"%"
+        </if>
+        <if test="server!=null and server!=''">
+            and ticket.server like "%"#{server}"%"
+        </if>
+        <if test="questionType!=null and questionType!=''">
+            and ticket.questionType like "%"#{questionType}"%"
+        </if>
+        <if test="operatorName!=null and operatorName!=''">
+            and b.name like "%"#{operatorName}"%"
+        </if>
+        <if test="status!=null and status!=''">
+            and ticket.status like "%"#{status}"%"
+        </if>
+        <if test="userId!=null and userId!='' and operatorId!=null and operatorId!=''">
+            and (userId=#{userId}
+            or
+            operatorId=#{operatorId})
+        </if>
+        order by createDate desc
+        ) row where rownum &lt;= (#{pageSize}+#{start}) ) tkt WHERE r &gt; #{start}
+    </select>
+
+    <select id="findTicketTotal" resultType="Long">
+        SELECT count(*)
+        FROM ticket
+        LEFT JOIN user a ON userId = a.id
+        LEFT JOIN user b ON operatorId = b.id
+        WHERE 1=1
+        <if test="id!=null and id!=''">
+            and ticket.tkId like "%"#{id}"%"
+        </if>
+        <if test="username!=null and username!=''">
+            and a.username like "%"#{username}"%"
+        </if>
+        <if test="server!=null and server!=''">
+            and ticket.server like "%"#{server}"%"
+        </if>
+        <if test="questionType!=null and questionType!=''">
+            and ticket.questionType like "%"#{questionType}"%"
+        </if>
+        <if test="operatorName!=null and operatorName!=''">
+            and b.name like "%"#{operatorName}"%"
+        </if>
+        <if test="status!=null and status!=''">
+            and ticket.status like "%"#{status}"%"
+        </if>
+        <if test="userId!=null and userId!='' and operatorId!=null and operatorId!=''">
+            and (userId=#{userId}
+            or
+            operatorId=#{operatorId})
+        </if>
+    </select>
+
+    <select id="findOne" resultType="com.tweedia.ticket.domain.Ticket">
+        SELECT ticket.*,a.username customerName,b.name operatorName
+        FROM ticket
+        LEFT JOIN user a ON userId = a.id
+        LEFT JOIN user b ON operatorId = b.id
+        WHERE ticket.id = #{id}
+        <if test="uid!=0">
+            and ticket.userId = #{uid}
+        </if>
+    </select>
+
+    <update id="updateTicket">
+        UPDATE ticket
+        <set>
+            reply = concat(#{reply},reply)
+        </set>
+        WHERE id=#{id}
+    </update>
+
+
+</mapper>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tweedia.ticket.mapper.AnnouncementMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.tweedia.ticket.domain.Announcement">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="message" property="message"/>
+        <result column="pubId" property="pubId"/>
+        <result column="createDate" property="createDate"/>
+        <result column="tid" property="tid"/>
+        <result column="state" property="state"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, title, message, pubId, createDate,tid,state
+    </sql>
+
+</mapper>

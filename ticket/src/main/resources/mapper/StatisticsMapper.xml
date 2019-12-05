@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tweedia.ticket.mapper.StatisticsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.tweedia.ticket.domain.Statistics">
+        <id column="id" property="id"/>
+        <result column="operatorId" property="operatorId"/>
+        <result column="countProcessed" property="countProcessed"/>
+        <result column="countAssigned" property="countAssigned"/>
+        <result column="operatorName" property="operatorName"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, operatorId, countProcessed, countAssigned, operatorName
+    </sql>
+
+    <select id="initTable" resultMap="BaseResultMap">
+        SELECT user.id operatorId,user.name operatorName
+        FROM user
+        JOIN user_role ON uid = user.id
+        JOIN role ON role.id = rid
+        WHERE role.name!='user'
+    </select>
+
+    <select id="initCount" resultMap="BaseResultMap">
+-- SELECT operatorId, count(operatorId) countProcessed,u.name operatorName
+-- FROM ticket
+-- JOIN user u ON ticket.operatorId=u.id
+-- WHERE 1=1 AND operatorId is NOT NULL
+-- GROUP BY operatorId
+-- ORDER BY countProcessed desc
+SELECT operatorId, count(operatorId) countProcessed
+-- ,count(operatorId) countAssigned
+-- ,u.name operatorName
+FROM ticket
+JOIN user u ON ticket.operatorId=u.id
+WHERE 1=1 AND operatorId is NOT NULL
+-- AND status='Assigned'
+GROUP BY operatorId
+-- ORDER BY countProcessed desc
+    </select>
+
+    <select id="initCounted" resultMap="BaseResultMap">
+SELECT operatorId, count(operatorId) countAssigned
+-- ,count(operatorId) countAssigned
+-- ,u.name operatorName
+FROM ticket
+JOIN user u ON ticket.operatorId=u.id
+WHERE 1=1 AND operatorId is NOT NULL
+AND status='Assigned'
+GROUP BY operatorId
+-- ORDER BY countProcessed desc
+    </select>
+
+
+</mapper>
